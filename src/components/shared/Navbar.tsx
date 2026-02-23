@@ -1,0 +1,171 @@
+"use client";
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Zap, Compass, LayoutDashboard, MessageCircle, 
+  Bell, User, LogOut, ShieldCheck, Repeat, 
+  PlusCircle, Heart, LineChart, ChevronDown, Settings
+} from "lucide-react";
+import { useAuth, UserRole } from "@/context/AuthContext";
+import { AppRouter } from "@/lib/router";
+
+export default function Navbar() {
+  const pathname = usePathname();
+  const { user, isLoggedIn, logout, switchRole } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const getTabs = () => {
+    const common = [
+      { label: "Marketplace", path: AppRouter.EXPLORE, icon: Compass },
+      { label: "Institutional", path: "#", icon: ShieldCheck },
+      { label: "Security & Escrow", path: "#", icon: Zap },
+    ];
+    
+    if (!isLoggedIn) return common;
+    
+    return [
+      { label: "Marketplace", path: AppRouter.EXPLORE, icon: Compass },
+      { label: user?.currentRole === 'DEVELOPER' ? "Command Center" : "Portfolio Hub", path: AppRouter.DASHBOARD, icon: LayoutDashboard },
+      { label: "Messages", path: AppRouter.CHAT, icon: MessageCircle },
+    ];
+  };
+
+  return (
+    <nav className={`fixed top-0 w-full z-[100] px-6 py-6 transition-all duration-500`}>
+      <div className={`max-w-7xl mx-auto backdrop-blur-3xl rounded-full px-8 py-3 flex items-center justify-between border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all ${isScrolled ? 'bg-black/70 scale-[0.98]' : 'bg-white/[0.03]'}`}>
+        
+        {/* LOGO */}
+        <Link href="/" className="flex items-center gap-2 group shrink-0">
+          <div className="bg-brand-blue p-1.5 rounded-lg group-hover:rotate-12 transition-transform shadow-[0_0_20px_rgba(0,112,255,0.5)]">
+            <Zap className="text-white w-5 h-5 fill-current" />
+          </div>
+          <span className="text-xl font-black italic tracking-tighter text-white uppercase tracking-[2px] hidden md:block">DEVEXIT</span>
+        </Link>
+
+        {/* NAVIGATION TABS */}
+        <div className="hidden md:flex items-center gap-1 bg-white/5 rounded-full px-2 py-1 border border-white/5 relative">
+          {getTabs().map((tab) => {
+            const isActive = pathname === tab.path;
+            const Icon = tab.icon;
+            return (
+              <Link key={tab.path} href={tab.path} className="relative py-2 px-5 group">
+                <div className={`flex items-center gap-2 transition-all relative z-10 ${isActive ? 'text-white' : 'text-gray-500 hover:text-white'}`}>
+                  <Icon size={14} strokeWidth={isActive ? 2.5 : 2} className={isActive ? "text-brand-blue" : ""} />
+                  <span className="text-[10px] font-mono font-black uppercase tracking-[2px]">{tab.label}</span>
+                </div>
+                
+                {isActive && (
+                  <motion.div 
+                    layoutId="navbar-active"
+                    className="absolute inset-0 bg-brand-blue/10 rounded-full -z-10 border border-brand-blue/20 shadow-[0_0_20px_rgba(0,112,255,0.1)]"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* AUTH SECTION */}
+        <div className="flex items-center gap-4 shrink-0">
+          <AnimatePresence mode="wait">
+            {!isLoggedIn ? (
+              <motion.div 
+                key="guest"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="flex items-center gap-4"
+              >
+                <Link href="/login" className="text-[10px] font-mono font-black text-gray-500 hover:text-white uppercase tracking-[2px] transition-colors">Login</Link>
+                <Link href="/register" className="bg-white text-black px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[2px] hover:bg-brand-blue hover:text-white hover:scale-105 transition-all shadow-xl active:scale-95 border border-white/10">Sign Up</Link>
+              </motion.div>
+            ) : (
+              <div className="relative" ref={menuRef}>
+                <button 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="flex items-center gap-3 p-1 pr-3 rounded-full bg-white/5 border border-white/5 hover:border-brand-blue/30 transition-all group relative overflow-hidden"
+                >
+                  <div className="relative">
+                    <img src={user?.avatar} className="w-8 h-8 rounded-full border border-brand-blue/30 p-0.5 group-hover:border-brand-blue transition-all" />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-background rounded-full" />
+                  </div>
+                  <div className="text-left hidden sm:block">
+                    <p className="text-[10px] font-black text-white leading-none uppercase tracking-wider">{user?.name.split(' ')[0]}</p>
+                    <p className="text-[7px] font-mono font-bold text-brand-blue uppercase tracking-widest mt-0.5">{user?.currentRole}</p>
+                  </div>
+                  <ChevronDown size={14} className={`text-gray-500 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* DROPDOWN MENU */}
+                <AnimatePresence>
+                  {isMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-4 w-64 backdrop-blur-3xl bg-black/80 border border-white/10 rounded-[24px] p-2 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden z-[110]"
+                    >
+                      <div className="p-4 border-b border-white/5 mb-2">
+                        <p className="text-[10px] font-mono font-black text-gray-500 uppercase tracking-[2px] mb-1">Signed in as</p>
+                        <p className="text-sm font-bold text-white truncate">{user?.email}</p>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Link href={AppRouter.DASHBOARD} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all group">
+                          <LayoutDashboard size={16} className="group-hover:text-brand-blue" />
+                          <span className="text-[11px] font-bold uppercase tracking-wider">Dashboard</span>
+                        </Link>
+                        <button 
+                          onClick={() => { switchRole(); setIsMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all group"
+                        >
+                          <Repeat size={16} className="text-brand-blue" />
+                          <span className="text-[11px] font-bold uppercase tracking-wider">Switch to {user?.currentRole === 'DEVELOPER' ? 'Investor' : 'Developer'}</span>
+                        </button>
+                        <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all group">
+                          <Settings size={16} className="group-hover:text-brand-blue" />
+                          <span className="text-[11px] font-bold uppercase tracking-wider">Settings</span>
+                        </Link>
+                      </div>
+
+                      <div className="mt-2 pt-2 border-t border-white/5">
+                        <button 
+                          onClick={logout}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 text-red-500 transition-all group"
+                        >
+                          <LogOut size={16} />
+                          <span className="text-[11px] font-bold uppercase tracking-wider">Sign Out</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </nav>
+  );
+}
