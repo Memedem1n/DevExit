@@ -9,7 +9,7 @@ import {
   Tag, DollarSign, TrendingUp, Globe, Filter,
   ArrowUpRight, Clock, ShieldCheck, Heart
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -193,15 +193,15 @@ export default function ExplorePage() {
           ) : (
             <AnimatePresence mode="popLayout">
               {filteredProjects.map((project, i) => (
-                <motion.div
-                  layout
-                  key={project.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="glass p-8 rounded-[40px] group hover:border-brand-blue/40 transition-all cursor-pointer relative flex flex-col h-full bg-white/[0.01]"
-                >
+                <Link key={project.id} href={`/project/${project.slug}`}>
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="glass p-8 rounded-[40px] group hover:border-brand-blue/40 transition-all cursor-pointer relative flex flex-col h-full bg-white/[0.01]"
+                  >
                   <div className="absolute top-6 right-8 flex items-center gap-3">
                     <button 
                       onClick={(e) => toggleWatchlist(e, project.id)}
@@ -267,10 +267,12 @@ export default function ExplorePage() {
                      <div className="flex items-center gap-2 text-brand-blue font-mono font-bold text-[9px] uppercase tracking-[2px]">
                       ANALYZE <ArrowUpRight size={12} />
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                                      </div>
+                                    </motion.div>
+                                  </Link>
+                                ))}
+                              </AnimatePresence>
+                  
           )}
         </div>
       </section>

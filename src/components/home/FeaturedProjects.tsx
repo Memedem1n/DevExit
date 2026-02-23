@@ -50,14 +50,14 @@ export default function FeaturedProjects() {
            ))
         ) : (
           projects.map((project, i) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              viewport={{ once: true }}
-              className="glass p-10 rounded-[40px] group hover:border-brand-blue/40 transition-all cursor-pointer relative flex flex-col h-full bg-white/[0.01]"
-            >
+            <Link key={project.id} href={`/project/${project.slug}`}>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="glass p-10 rounded-[40px] group hover:border-brand-blue/40 transition-all cursor-pointer relative flex flex-col h-full bg-white/[0.01]"
+              >
               <div className="flex justify-between items-start mb-8">
                 <div className="p-3 bg-white/5 rounded-2xl group-hover:bg-brand-blue/10 transition-colors border border-white/5">
                   <Tag className="text-brand-blue" size={20} />
@@ -109,6 +109,7 @@ export default function FeaturedProjects() {
                 ANALYZE ASSET <ArrowUpRight size={12} />
               </div>
             </motion.div>
+          </Link>
           ))
         )}
       </div>
