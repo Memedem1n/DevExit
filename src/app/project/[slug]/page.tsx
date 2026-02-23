@@ -23,6 +23,8 @@ export default function ProjectDetailPage() {
   const [offerMessage, setOfferMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
+  const [isNdaSigned, setIsNdaSigned] = useState(false);
+  const [isSigningNda, setIsSigningNda] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -32,6 +34,13 @@ export default function ProjectDetailPage() {
         if (res.ok) {
           setProject(data);
           setOfferAmount(data.price.toString());
+          
+          // NDA Kontrolü
+          if (user) {
+            const ndaRes = await fetch(`/api/nda?projectId=${data.id}`);
+            const ndaData = await ndaRes.json();
+            setIsNdaSigned(ndaData.isSigned);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch project detail", err);
@@ -40,7 +49,26 @@ export default function ProjectDetailPage() {
       }
     };
     if (slug) fetchProject();
-  }, [slug]);
+  }, [slug, user]);
+
+  const handleSignNda = async () => {
+    if (!user) return alert("Please login first");
+    setIsSigningNda(true);
+    try {
+      const res = await fetch("/api/nda", {
+        method: "POST",
+        body: JSON.stringify({ projectId: project.id }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (res.ok) {
+        setIsNdaSigned(true);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSigningNda(false);
+    }
+  };
 
   const handleMakeOffer = async () => {
     if (!user) {
@@ -149,11 +177,12 @@ export default function ProjectDetailPage() {
 
             {/* Screenshots Showcase */}
             {project.screenshots && (
-              <div className="space-y-8">
+              <div className="space-y-8 relative">
                 <h4 className="text-[11px] font-mono font-black text-brand-blue uppercase tracking-[4px] flex items-center gap-3">
                   <ImageIcon size={14} /> ASSET SHOWCASE
                 </h4>
-                <div className="grid grid-cols-1 gap-6">
+                
+                <div className={`grid grid-cols-1 gap-6 transition-all duration-700 ${!isNdaSigned ? 'blur-2xl grayscale pointer-events-none opacity-40' : ''}`}>
                   {project.screenshots.split(',').map((url: string, i: number) => (
                     <motion.div 
                       key={i}
@@ -164,6 +193,23 @@ export default function ProjectDetailPage() {
                     </motion.div>
                   ))}
                 </div>
+
+                {!isNdaSigned && (
+                  <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-12">
+                     <div className="glass p-10 rounded-[40px] border-brand-blue/30 shadow-[0_0_100px_rgba(0,112,255,0.2)] bg-background/40 backdrop-blur-md">
+                        <Lock size={40} className="text-brand-blue mx-auto mb-6 animate-bounce" />
+                        <h3 className="text-2xl font-extrabold text-white uppercase tracking-tight mb-4">Confidential Data</h3>
+                        <p className="text-gray-400 text-sm mb-8 max-w-xs mx-auto font-medium">Please sign the digital NDA to unlock internal screenshots and technical data.</p>
+                        <button 
+                          onClick={handleSignNda}
+                          disabled={isSigningNda}
+                          className="px-10 py-4 bg-brand-blue text-white font-black rounded-full hover:shadow-[0_0_30px_rgba(0,112,255,0.4)] transition-all uppercase tracking-[3px] text-[10px] active:scale-95"
+                        >
+                          {isSigningNda ? "SIGNING..." : "SIGN DIGITAL NDA"}
+                        </button>
+                     </div>
+                  </div>
+                )}
               </div>
             )}
 
