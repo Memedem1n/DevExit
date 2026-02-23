@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, DollarSign, TrendingUp, Tag, Globe } from "lucide-center";
+import { ArrowUpRight, DollarSign, TrendingUp, Tag, Globe } from "lucide-react";
 import Link from "next/link";
 
 export default function FeaturedProjects() {

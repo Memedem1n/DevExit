@@ -19,23 +19,59 @@ export default function DashboardPage() {
     offerCount: 0,
     qualityScore: 0,
   });
+  const [activities, setActivities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch("/api/user/stats");
-        const data = await res.json();
-        if (res.ok) setStats(data);
+        const [statsRes, activityRes] = await Promise.all([
+          fetch("/api/user/stats"),
+          fetch("/api/user/activity")
+        ]);
+        
+        const statsData = await statsRes.json();
+        const activityData = await activityRes.json();
+        
+        if (statsRes.ok) setStats(statsData);
+        if (activityRes.ok) setActivities(activityData);
       } catch (err) {
-        console.error("Failed to fetch stats", err);
+        console.error("Failed to fetch dashboard data", err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (user) fetchStats();
+    if (user) fetchData();
   }, [user]);
+
+  const getTimeAgo = (date: string) => {
+    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return new Date(date).toLocaleDateString();
+  };
+
+  const handleUpdateOffer = async (offerId: string, status: string) => {
+    try {
+      const res = await fetch(`/api/offers/${offerId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (res.ok) {
+        // Refresh activities
+        const activityRes = await fetch("/api/user/activity");
+        const activityData = await activityRes.json();
+        setActivities(activityData);
+      }
+    } catch (err) {
+      console.error("Failed to update offer", err);
+    }
+  };
 
   return (
     <main className="min-h-screen relative overflow-hidden bg-background font-sans">
@@ -100,22 +136,41 @@ export default function DashboardPage() {
               <Bell size={20} className="text-brand-blue" /> RECENT ACTIVITY
             </h3>
             <div className="space-y-6">
-              {[
-                { type: "Offer", msg: "TechCapital LLC sent a preliminary offer of $115,000.", time: "2h ago", color: "bg-green-500/10 text-green-500 border-green-500/20" },
-                { type: "NDA Signed", msg: "Investor 'Alex M.' signed the NDA for Lumina AI.", time: "5h ago", color: "bg-brand-blue/10 text-brand-blue border-brand-blue/20" },
-                { type: "View Spike", msg: "Your project is trending in 'SaaS' category (+400 views).", time: "1d ago", color: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
-                { type: "Message", msg: "New inquiry about technical debt from a verified buyer.", time: "2d ago", color: "bg-gray-500/10 text-gray-400 border-gray-500/20" },
-              ].map((notif, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
-                  <div className={`px-3 py-1 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border ${notif.color} shrink-0`}>
-                    {notif.type}
+              {activities.length > 0 ? (
+                activities.map((notif, i) => (
+                  <div key={i} className="flex flex-col gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors relative group">
+                    <div className="flex items-start gap-4">
+                      <div className={`px-3 py-1 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border ${notif.color} shrink-0`}>
+                        {notif.type} {notif.status !== 'PENDING' && notif.status ? `| ${notif.status}` : ''}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-300 leading-snug">{notif.msg}</p>
+                        <span className="text-[10px] text-gray-600 font-mono mt-2 block">{getTimeAgo(notif.time)}</span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons for Offers */}
+                    {notif.type === 'OFFER' && notif.status === 'PENDING' && (
+                      <div className="flex gap-3 mt-2">
+                        <button 
+                          onClick={() => handleUpdateOffer(notif.id, 'ACCEPTED')}
+                          className="flex-1 py-3 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                          Accept Offer
+                        </button>
+                        <button 
+                          onClick={() => handleUpdateOffer(notif.id, 'REJECTED')}
+                          className="flex-1 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-300 leading-snug">{notif.msg}</p>
-                    <span className="text-[10px] text-gray-600 font-mono mt-2 block">{notif.time}</span>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 font-mono text-[10px] uppercase text-center py-10 tracking-widest">NO RECENT ACTIVITY</p>
+              )}
             </div>
           </div>
 
