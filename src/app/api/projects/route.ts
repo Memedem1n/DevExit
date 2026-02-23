@@ -62,9 +62,24 @@ export async function GET(req: Request) {
     const projects = await prisma.project.findMany({
       where,
       orderBy,
-      include: { user: { select: { name: true, avatar: true } } }
+      include: { 
+        user: { select: { name: true, avatar: true } },
+        watchlistedBy: true
+      }
     });
-    return NextResponse.json(projects);
+
+    // Oturum açmış kullanıcı için isWatchlisted bayrağını ekle
+    const projectsWithWatchlist = projects.map(p => {
+      const isWatchlisted = session?.user 
+        // @ts-ignore
+        ? p.watchlistedBy.some(w => w.userId === session.user.id)
+        : false;
+      
+      const { watchlistedBy, ...rest } = p;
+      return { ...rest, isWatchlisted };
+    });
+
+    return NextResponse.json(projectsWithWatchlist);
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
   }

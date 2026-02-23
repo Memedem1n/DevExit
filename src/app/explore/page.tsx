@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, SlidersHorizontal, ChevronDown, 
   Tag, DollarSign, TrendingUp, Globe, Filter,
-  ArrowUpRight, Clock, ShieldCheck
+  ArrowUpRight, Clock, ShieldCheck, Heart
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -47,6 +47,31 @@ export default function ExplorePage() {
     const searchStr = (p.title + p.type + p.techStack).toLowerCase();
     return searchStr.includes(searchQuery.toLowerCase());
   });
+
+  const toggleWatchlist = async (e: React.MouseEvent, projectId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const res = await fetch("/api/watchlist", {
+        method: "POST",
+        body: JSON.stringify({ projectId }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (res.ok) {
+        // Refresh or update local state
+        const data = await res.json();
+        // Option: re-fetch or just update visually
+        setProjects(projects.map(p => {
+          if (p.id === projectId) {
+            return { ...p, isWatchlisted: data.status === "ADDED" };
+          }
+          return p;
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <main className="min-h-screen relative overflow-hidden bg-background">
@@ -177,7 +202,13 @@ export default function ExplorePage() {
                   transition={{ delay: i * 0.05 }}
                   className="glass p-8 rounded-[40px] group hover:border-brand-blue/40 transition-all cursor-pointer relative flex flex-col h-full bg-white/[0.01]"
                 >
-                  <div className="absolute top-6 right-8">
+                  <div className="absolute top-6 right-8 flex items-center gap-3">
+                    <button 
+                      onClick={(e) => toggleWatchlist(e, project.id)}
+                      className={`p-2 rounded-full transition-all ${project.isWatchlisted ? 'bg-red-500/20 text-red-500' : 'bg-white/5 text-gray-500 hover:text-white'}`}
+                    >
+                      <Heart size={16} fill={project.isWatchlisted ? "currentColor" : "none"} />
+                    </button>
                     {project.isVerified && (
                       <div className="px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-full text-[8px] font-mono font-black uppercase tracking-[2px] flex items-center gap-1 border border-brand-blue/20">
                         <ShieldCheck size={10} /> VERIFIED

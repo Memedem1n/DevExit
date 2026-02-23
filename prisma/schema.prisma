@@ -28,6 +28,7 @@ model User {
   offersSent        Offer[]   @relation("UserOffersSent")
   sentMessages      Message[] @relation("SentMessages")
   receivedMessages  Message[] @relation("ReceivedMessages")
+  watchlist         Watchlist[]
 }
 
 model Message {
@@ -108,12 +109,26 @@ model Project {
   user            User     @relation("UserProjects", fields: [userId], references: [id])
   offers          Offer[]  @relation("ProjectOffers")
   messages        Message[]
+  watchlistedBy   Watchlist[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([userId])
   @@index([status])
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, projectId])
+  @@index([userId])
+  @@index([projectId])
 }
 
 model Offer {
