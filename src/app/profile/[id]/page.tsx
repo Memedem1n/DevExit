@@ -19,12 +19,21 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editAvatar, setEditAvatar] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const res = await fetch(`/api/user/${id}`);
         const data = await res.json();
-        if (res.ok) setProfile(data);
+        if (res.ok) {
+          setProfile(data);
+          setEditName(data.name || "");
+          setEditAvatar(data.avatar || "");
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -33,6 +42,31 @@ export default function ProfilePage() {
     };
     if (id) fetchProfile();
   }, [id]);
+
+  const handleUpdate = async () => {
+    setIsUpdating(true);
+    try {
+      const res = await fetch(`/api/user/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name: editName, avatar: editAvatar }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setProfile(updated);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const generateNewAvatar = () => {
+    const seed = Math.random().toString(36).substring(7);
+    setEditAvatar(`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`);
+  };
 
   if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-12 h-12 border-2 border-brand-blue border-t-transparent rounded-full animate-spin" /></div>;
 
@@ -53,12 +87,22 @@ export default function ProfilePage() {
           
           <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
             <div className="relative group">
-              <div className="w-40 h-40 rounded-[50px] border-4 border-brand-blue/30 p-1.5 shadow-2xl transition-transform group-hover:scale-105 duration-500">
-                <img src={profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`} className="w-full h-full rounded-[40px] object-cover" />
+              <div className="w-40 h-40 rounded-[50px] border-4 border-brand-blue/30 p-1.5 shadow-2xl transition-transform group-hover:scale-105 duration-500 overflow-hidden bg-background">
+                <img src={isEditing ? editAvatar : profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`} className="w-full h-full rounded-[40px] object-cover" />
+                {isEditing && (
+                  <button 
+                    onClick={generateNewAvatar}
+                    className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white text-[10px] font-mono font-black uppercase tracking-widest gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Zap size={24} className="text-brand-blue" /> Change Avatar
+                  </button>
+                )}
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-brand-blue p-3 rounded-2xl border-4 border-background shadow-xl">
-                 <ShieldCheck size={20} className="text-white" />
-              </div>
+              {!isEditing && (
+                <div className="absolute -bottom-2 -right-2 bg-brand-blue p-3 rounded-2xl border-4 border-background shadow-xl">
+                   <ShieldCheck size={20} className="text-white" />
+                </div>
+              )}
             </div>
 
             <div className="text-center md:text-left flex-1">
@@ -66,15 +110,21 @@ export default function ProfilePage() {
                 <span className="px-4 py-1.5 bg-brand-blue/10 text-brand-blue rounded-full text-[10px] font-mono font-black uppercase tracking-[2px] border border-brand-blue/20">
                   {profile.currentRole}
                 </span>
-                {profile.isVerified && (
-                  <span className="px-4 py-1.5 bg-green-500/10 text-green-500 rounded-full text-[10px] font-mono font-black uppercase tracking-[2px] border border-green-500/20 flex items-center gap-2">
-                    <Award size={12} /> ELITE PARTNER
-                  </span>
-                )}
               </div>
-              <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tighter mb-4 uppercase leading-[0.9]">
-                {profile.name}
-              </h1>
+              
+              {isEditing ? (
+                <input 
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="text-5xl md:text-6xl font-extrabold text-white tracking-tighter mb-4 uppercase bg-white/5 border border-brand-blue/30 rounded-3xl px-6 w-full outline-none focus:border-brand-blue transition-all"
+                />
+              ) : (
+                <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tighter mb-4 uppercase leading-[0.9]">
+                  {profile.name}
+                </h1>
+              )}
+              
               <p className="text-gray-500 font-bold text-lg max-w-2xl">
                 Independent Software Builder and Strategic Investor. Focused on high-yield SaaS assets and sustainable AI tools.
               </p>
@@ -82,9 +132,25 @@ export default function ProfilePage() {
 
             <div className="flex flex-col gap-4 min-w-[200px]">
                {isMe ? (
-                 <Link href="#" className="px-8 py-5 glass text-white font-black rounded-full hover:bg-white/10 transition-all uppercase tracking-[3px] text-[10px] flex items-center justify-center gap-3">
-                   <Settings size={14} /> EDIT PROFILE
-                 </Link>
+                 isEditing ? (
+                   <>
+                    <button 
+                      onClick={handleUpdate}
+                      disabled={isUpdating}
+                      className="px-8 py-5 bg-brand-blue text-white font-black rounded-full hover:shadow-[0_0_40px_rgba(0,112,255,0.4)] transition-all uppercase tracking-[3px] text-[10px] flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {isUpdating ? "SAVING..." : "SAVE CHANGES"}
+                    </button>
+                    <button onClick={() => setIsEditing(false)} className="text-[10px] font-mono font-black text-gray-600 hover:text-white uppercase tracking-[3px]">Cancel</button>
+                   </>
+                 ) : (
+                   <button 
+                    onClick={() => setIsEditing(true)}
+                    className="px-8 py-5 glass text-white font-black rounded-full hover:bg-white/10 transition-all uppercase tracking-[3px] text-[10px] flex items-center justify-center gap-3"
+                   >
+                     <Settings size={14} /> EDIT PROFILE
+                   </button>
+                 )
                ) : (
                  <button className="px-8 py-5 bg-brand-blue text-white font-black rounded-full hover:shadow-[0_0_40px_rgba(0,112,255,0.4)] transition-all uppercase tracking-[3px] text-[10px] flex items-center justify-center gap-3">
                    <MessageSquare size={14} /> CONTACT DIRECTLY
