@@ -18,6 +18,7 @@ export default function DashboardPage() {
     totalViews: 0,
     offerCount: 0,
     qualityScore: 0,
+    valuation: { min: 0, max: 0 }
   });
   const [activities, setActivities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -189,7 +190,13 @@ export default function DashboardPage() {
             <div className="text-center py-8 border-t border-b border-white/5 mb-8">
               <p className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-[2px] mb-2">ESTIMATED EXIT RANGE</p>
               <div className="text-5xl font-mono font-black text-white tracking-tighter">
-                $110K <span className="text-gray-600 text-3xl mx-2">-</span> $145K
+                {stats.valuation?.min > 0 ? (
+                  <>
+                    ${Math.round(stats.valuation.min / 1000)}K <span className="text-gray-600 text-3xl mx-2">-</span> ${Math.round(stats.valuation.max / 1000)}K
+                  </>
+                ) : (
+                  "$0K"
+                )}
               </div>
             </div>
 
