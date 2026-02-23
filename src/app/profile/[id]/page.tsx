@@ -110,6 +110,15 @@ export default function ProfilePage() {
                 <span className="px-4 py-1.5 bg-brand-blue/10 text-brand-blue rounded-full text-[10px] font-mono font-black uppercase tracking-[2px] border border-brand-blue/20">
                   {profile.currentRole}
                 </span>
+                {profile.badges?.map((badge: any) => (
+                  <span key={badge.id} className={`px-4 py-1.5 bg-white/5 ${badge.color} rounded-full text-[10px] font-mono font-black uppercase tracking-[2px] border border-white/5 flex items-center gap-2 shadow-xl`}>
+                    {badge.id === 'elite' && <Award size={12} />}
+                    {badge.id === 'verified_buyer' && <ShieldCheck size={12} />}
+                    {badge.id === 'pro_builder' && <Zap size={12} />}
+                    {badge.id === 'pioneer' && <Star size={12} />}
+                    {badge.label}
+                  </span>
+                ))}
               </div>
               
               {isEditing ? (

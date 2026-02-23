@@ -13,8 +13,10 @@ export async function GET(
       where: { id },
       include: {
         projects: {
-          where: { status: "PUBLISHED" },
           orderBy: { createdAt: "desc" }
+        },
+        offersSent: {
+          where: { status: "ACCEPTED" }
         }
       }
     });
@@ -23,7 +25,21 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    // Badge Calculation Logic
+    const badges = [];
+    const totalListingValue = user.projects.reduce((acc, p) => acc + p.price, 0);
+    const hasAcceptedOffer = user.offersSent.length > 0;
+    const projectCount = user.projects.length;
+
+    if (totalListingValue > 10000) badges.push({ id: "elite", label: "Elite Partner", color: "text-brand-blue", icon: "Award" });
+    if (hasAcceptedOffer) badges.push({ id: "verified_buyer", label: "Verified Buyer", color: "text-green-500", icon: "ShieldCheck" });
+    if (projectCount >= 3) badges.push({ id: "pro_builder", label: "Pro Builder", color: "text-purple-500", icon: "Zap" });
+    
+    // Pioneer badge for early users
+    const joinDate = new Date(user.createdAt);
+    if (joinDate.getFullYear() <= 2026) badges.push({ id: "pioneer", label: "Pioneer", color: "text-orange-500", icon: "Star" });
+
+    return NextResponse.json({ ...user, badges });
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });
   }
