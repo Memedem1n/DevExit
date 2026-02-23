@@ -26,14 +26,40 @@ export default function Home() {
           transition={{ duration: 1 }}
         >
           <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/5 bg-white/5 text-[10px] font-mono font-bold uppercase tracking-[4px] mb-8 hover:border-brand-blue/50 transition-colors cursor-pointer text-gray-400 group">
-            <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse shadow-[0_0_15px_rgba(0,112,255,1)]" />
+            <img 
+              src="/logo.png" 
+              className="w-[35px] h-[35px] object-contain" 
+              alt="Logo" 
+              style={{ filter: 'drop-shadow(0 2px 2px rgba(51, 51, 51, 0.3))' }}
+            />
             V2.0 LIVE: AUTO VALUATION ENGINE
             <Satellite size={10} className="text-brand-blue ml-2 group-hover:rotate-45 transition-transform" />
           </div>
 
           <h1 className="text-7xl md:text-9xl font-extrabold tracking-tighter mb-10 leading-[0.85] text-white">
             BUILD. GROW. <br />
-            <span className="text-gradient italic">EXIT.</span>
+            <motion.span 
+              animate={{ 
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                filter: [
+                  "drop-shadow(0 0 10px rgba(0,112,255,0.3))",
+                  "drop-shadow(0 0 20px rgba(255,215,0,0.4))",
+                  "drop-shadow(0 0 10px rgba(0,112,255,0.3))"
+                ]
+              }}
+              transition={{ 
+                duration: 4, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
+              style={{ 
+                backgroundSize: '200% auto',
+                backgroundImage: 'linear-gradient(to right, #0070FF, #00D1FF, #FFD700, #FFA500, #0070FF)'
+              }}
+              className="bg-clip-text text-transparent italic drop-shadow-2xl"
+            >
+              EXIT.
+            </motion.span>
           </h1>
 
           <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-14 leading-relaxed font-semibold tracking-tight">

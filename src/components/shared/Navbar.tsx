@@ -66,8 +66,7 @@ export default function Navbar() {
   const getTabs = () => {
     const common = [
       { label: "Marketplace", path: AppRouter.EXPLORE, icon: Compass },
-      { label: "Institutional", path: "#", icon: ShieldCheck },
-      { label: "Security & Escrow", path: "#", icon: Zap },
+      { label: "Success Stories", path: "#", icon: ShieldCheck },
     ];
     
     if (!isLoggedIn) return common;
@@ -84,11 +83,16 @@ export default function Navbar() {
       <div className={`max-w-7xl mx-auto backdrop-blur-3xl rounded-full px-8 py-3 flex items-center justify-between border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all ${isScrolled ? 'bg-black/70 scale-[0.98]' : 'bg-white/[0.03]'}`}>
         
         {/* LOGO */}
-        <Link href="/" className="flex items-center gap-2 group shrink-0">
-          <div className="bg-brand-blue p-1.5 rounded-lg group-hover:rotate-12 transition-transform shadow-[0_0_20px_rgba(0,112,255,0.5)]">
-            <Zap className="text-white w-5 h-5 fill-current" />
+        <Link href="/" className="flex items-center gap-1 group shrink-0">
+          <div className="p-1 rounded-lg group-hover:scale-110 transition-transform">
+            <img 
+              src="/logo.png" 
+              alt="DevExit Logo" 
+              className="w-[58px] h-[58px] object-contain" 
+              style={{ filter: 'drop-shadow(0 2px 2px rgba(51, 51, 51, 0.3))' }}
+            />
           </div>
-          <span className="text-xl font-black italic tracking-tighter text-white uppercase tracking-[2px] hidden md:block">DEVEXIT</span>
+          <span className="text-xl font-black italic tracking-tighter text-white uppercase tracking-[2px] hidden md:block -ml-1">DEVEXIT</span>
         </Link>
 
         {/* NAVIGATION TABS */}
@@ -102,7 +106,6 @@ export default function Navbar() {
                   <Icon size={14} strokeWidth={isActive ? 2.5 : 2} className={isActive ? "text-brand-blue" : ""} />
                   <span className="text-[10px] font-mono font-black uppercase tracking-[2px]">{tab.label}</span>
                 </div>
-                
                 {isActive && (
                   <motion.div 
                     layoutId="navbar-active"
@@ -183,67 +186,67 @@ export default function Navbar() {
                   </AnimatePresence>
                 </div>
 
+                {/* USER MENU */}
                 <div className="relative" ref={menuRef}>
-                <button 
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="flex items-center gap-3 p-1 pr-3 rounded-full bg-white/5 border border-white/5 hover:border-brand-blue/30 transition-all group relative overflow-hidden"
-                >
-                  <div className="relative">
-                    <img src={user?.avatar} className="w-8 h-8 rounded-full border border-brand-blue/30 p-0.5 group-hover:border-brand-blue transition-all" />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-background rounded-full" />
-                  </div>
-                  <div className="text-left hidden sm:block">
-                    <p className="text-[10px] font-black text-white leading-none uppercase tracking-wider">{user?.name.split(' ')[0]}</p>
-                    <p className="text-[7px] font-mono font-bold text-brand-blue uppercase tracking-widest mt-0.5">{user?.currentRole}</p>
-                  </div>
-                  <ChevronDown size={14} className={`text-gray-500 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
+                  <button 
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="flex items-center gap-3 p-1 pr-3 rounded-full bg-white/5 border border-white/5 hover:border-brand-blue/30 transition-all group relative overflow-hidden"
+                  >
+                    <div className="relative">
+                      <img src={user?.avatar} className="w-8 h-8 rounded-full border border-brand-blue/30 p-0.5 group-hover:border-brand-blue transition-all" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-background rounded-full" />
+                    </div>
+                    <div className="text-left hidden sm:block">
+                      <p className="text-[10px] font-black text-white leading-none uppercase tracking-wider">{user?.name.split(' ')[0]}</p>
+                      <p className="text-[7px] font-mono font-bold text-brand-blue uppercase tracking-widest mt-0.5">{user?.currentRole}</p>
+                    </div>
+                    <ChevronDown size={14} className={`text-gray-500 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
+                  </button>
 
-                {/* DROPDOWN MENU */}
-                <AnimatePresence>
-                  {isMenuOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-4 w-64 backdrop-blur-3xl bg-black/80 border border-white/10 rounded-[24px] p-2 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden z-[110]"
-                    >
-                      <div className="p-4 border-b border-white/5 mb-2">
-                        <p className="text-[10px] font-mono font-black text-gray-500 uppercase tracking-[2px] mb-1">Signed in as</p>
-                        <p className="text-sm font-bold text-white truncate">{user?.email}</p>
-                      </div>
+                  <AnimatePresence>
+                    {isMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-4 w-64 backdrop-blur-3xl bg-black/80 border border-white/10 rounded-[24px] p-2 shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden z-[110]"
+                      >
+                        <div className="p-4 border-b border-white/5 mb-2">
+                          <p className="text-[10px] font-mono font-black text-gray-500 uppercase tracking-[2px] mb-1">Signed in as</p>
+                          <p className="text-sm font-bold text-white truncate">{user?.email}</p>
+                        </div>
 
-                      <div className="space-y-1">
-                        <Link href={AppRouter.DASHBOARD} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all group">
-                          <LayoutDashboard size={16} className="group-hover:text-brand-blue" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider">Dashboard</span>
-                        </Link>
-                        <button 
-                          onClick={() => { switchRole(); setIsMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all group"
-                        >
-                          <Repeat size={16} className="text-brand-blue" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider">Switch to {user?.currentRole === 'DEVELOPER' ? 'Investor' : 'Developer'}</span>
-                        </button>
-                        <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all group">
-                          <Settings size={16} className="group-hover:text-brand-blue" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider">Settings</span>
-                        </Link>
-                      </div>
+                        <div className="space-y-1">
+                          <Link href={AppRouter.DASHBOARD} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all group">
+                            <LayoutDashboard size={16} className="group-hover:text-brand-blue" />
+                            <span className="text-[11px] font-bold uppercase tracking-wider">Dashboard</span>
+                          </Link>
+                          <button 
+                            onClick={() => { switchRole(); setIsMenuOpen(false); }}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all group"
+                          >
+                            <Repeat size={16} className="text-brand-blue" />
+                            <span className="text-[11px] font-bold uppercase tracking-wider">Switch Role</span>
+                          </button>
+                          <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all group">
+                            <Settings size={16} className="group-hover:text-brand-blue" />
+                            <span className="text-[11px] font-bold uppercase tracking-wider">Settings</span>
+                          </Link>
+                        </div>
 
-                      <div className="mt-2 pt-2 border-t border-white/5">
-                        <button 
-                          onClick={logout}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 text-red-500 transition-all group"
-                        >
-                          <LogOut size={16} />
-                          <span className="text-[11px] font-bold uppercase tracking-wider">Sign Out</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                        <div className="mt-2 pt-2 border-t border-white/5">
+                          <button 
+                            onClick={logout}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 text-red-500 transition-all group"
+                          >
+                            <LogOut size={16} />
+                            <span className="text-[11px] font-bold uppercase tracking-wider">Sign Out</span>
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             )}
           </AnimatePresence>

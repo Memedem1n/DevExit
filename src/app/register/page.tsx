@@ -35,10 +35,15 @@ export default function RegisterPage() {
       >
         <div className="text-center mb-12">
           <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
-            <div className="bg-brand-blue p-1.5 rounded-lg group-hover:rotate-12 transition-transform shadow-[0_0_15px_rgba(0,112,255,0.4)]">
-              <Zap className="text-white w-5 h-5 fill-current" />
+            <div className="p-2 rounded-2xl bg-white/5 border border-white/10 shadow-2xl transition-transform group-hover:scale-105">
+              <img 
+                src="/logo.png" 
+                alt="DevExit Logo" 
+                className="w-[111px] h-[111px] object-contain" 
+                style={{ filter: 'drop-shadow(0 2px 2px rgba(51, 51, 51, 0.3))' }}
+              />
             </div>
-            <span className="text-2xl font-black italic tracking-tighter text-white uppercase tracking-[2px]">DEVEXIT</span>
+            <span className="text-3xl font-black italic tracking-tighter text-white uppercase tracking-[3px]">DEVEXIT</span>
           </Link>
           <h2 className="text-4xl font-extrabold text-white tracking-tighter mb-4">Join the Network.</h2>
           <p className="text-gray-500 font-bold text-lg">Select your primary role.</p>

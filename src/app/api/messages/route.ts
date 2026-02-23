@@ -18,13 +18,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: validation.error.format() }, { status: 400 });
     }
 
-    const { content, receiverId, projectId } = validation.data;
+    const { content, receiverId, projectId, fileUrl, fileType } = validation.data;
 
     const message = await prisma.message.create({
       data: {
         content,
         receiverId,
         projectId,
+        fileUrl,
+        fileType,
         // @ts-ignore
         senderId: session.user.id
       },

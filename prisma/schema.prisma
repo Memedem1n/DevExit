@@ -49,6 +49,8 @@ model Notification {
 model Message {
   id          String   @id @default(cuid())
   content     String
+  fileUrl     String?
+  fileType    String?  // IMAGE, PDF, DOC, etc.
   senderId    String
   receiverId  String
   projectId   String?
@@ -119,6 +121,36 @@ model Project {
   storeUrl        String?
   revenueCatId    String?
   screenshots     String?  // Comma separated URLs
+  
+  // Advanced Metrics
+  revenueModel    String?  // SUBSCRIPTION, ONE_TIME, FREEMIUM, AD_BASED
+  churnRate       Float?   
+  ltv             Float?   
+  arpu            Float?   
+  
+  // Detailed Performance Metrics
+  mau             Int?     // Monthly Active Users
+  last28DayRevenue Float?
+  monthlyDownloads Int?
+  appAge          String?  // e.g. "2 years"
+  monthlyExpenses Float?   @default(0)
+  
+  // Pricing & Strategy
+  pricingStrategy String   @default("FIXED") // FIXED, OFFERS
+  isOffersAccepted Boolean @default(true)
+  
+  // Transfer Details
+  assetsIncluded  String?  // Comma separated: Code, Domain, Assets, etc.
+  reasonForSelling String?
+  visibility      String   @default("PUBLIC") // PUBLIC, PRIVATE
+  
+  // App Store Metadata
+  appSize         String?  
+  ageRating       String?  // e.g. "4+"
+  languages       String?  // e.g. "EN, TR, ES"
+  lastUpdate      DateTime?
+  rating          Float?   @default(0)
+  reviewCount     Int?     @default(0)
   
   // Relations
   userId          String

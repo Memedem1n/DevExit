@@ -30,6 +30,32 @@
   animation: glow-pulse 3s infinite ease-in-out;
 }
 
+/* Custom Scrollbar for Elite UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 112, 255, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 112, 255, 0.5);
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 112, 255, 0.2) rgba(255, 255, 255, 0.01);
+}
+
 @keyframes glow-pulse {
   0% { box-shadow: 0 0 10px rgba(0, 112, 255, 0.2); }
   50% { box-shadow: 0 0 30px rgba(0, 112, 255, 0.5); }

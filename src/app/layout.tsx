@@ -19,6 +19,10 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "DevExit | Premier Developer Asset Marketplace",
   description: "Buy and sell high-quality software assets with elite escrow.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  }
 };
 
 export default function RootLayout({

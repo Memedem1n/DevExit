@@ -58,9 +58,7 @@ export default function ExplorePage() {
         headers: { "Content-Type": "application/json" }
       });
       if (res.ok) {
-        // Refresh or update local state
         const data = await res.json();
-        // Option: re-fetch or just update visually
         setProjects(projects.map(p => {
           if (p.id === projectId) {
             return { ...p, isWatchlisted: data.status === "ADDED" };
@@ -79,7 +77,6 @@ export default function ExplorePage() {
       <Navbar />
 
       <section className="pt-48 pb-32 px-6 max-w-7xl mx-auto">
-        {/* Header Area */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-lg text-[9px] font-mono font-bold uppercase tracking-[2px] mb-4 border border-brand-blue/20">
@@ -91,7 +88,6 @@ export default function ExplorePage() {
           </div>
           
           <div className="w-full md:w-auto flex flex-col sm:flex-row gap-4">
-            {/* Search Bar */}
             <div className="relative group flex-1 sm:w-80">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-blue transition-colors" size={18} />
               <input 
@@ -125,7 +121,6 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {/* Advanced Filters Drawer */}
         <AnimatePresence>
           {showFilters && (
             <motion.div
@@ -167,7 +162,6 @@ export default function ExplorePage() {
           )}
         </AnimatePresence>
 
-        {/* Quick Filter Tabs */}
         <div className="flex gap-3 overflow-x-auto no-scrollbar pb-8 mb-12">
           {["All", "SaaS", "Mobile", "Marketplace", "Tools"].map((tab) => (
             <button
@@ -184,7 +178,6 @@ export default function ExplorePage() {
           ))}
         </div>
 
-        {/* Assets Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {isLoading ? (
              [1,2,3,4,5,6].map(i => (
@@ -202,77 +195,75 @@ export default function ExplorePage() {
                     transition={{ delay: i * 0.05 }}
                     className="glass p-8 rounded-[40px] group hover:border-brand-blue/40 transition-all cursor-pointer relative flex flex-col h-full bg-white/[0.01]"
                   >
-                  <div className="absolute top-6 right-8 flex items-center gap-3">
-                    <button 
-                      onClick={(e) => toggleWatchlist(e, project.id)}
-                      className={`p-2 rounded-full transition-all ${project.isWatchlisted ? 'bg-red-500/20 text-red-500' : 'bg-white/5 text-gray-500 hover:text-white'}`}
-                    >
-                      <Heart size={16} fill={project.isWatchlisted ? "currentColor" : "none"} />
-                    </button>
-                    {project.isVerified && (
-                      <div className="px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-full text-[8px] font-mono font-black uppercase tracking-[2px] flex items-center gap-1 border border-brand-blue/20">
-                        <ShieldCheck size={10} /> VERIFIED
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mb-8">
-                    <div className="p-3 w-fit bg-white/5 rounded-2xl group-hover:bg-brand-blue/10 transition-colors border border-white/5 mb-6">
-                      <Tag className="text-brand-blue" size={20} />
-                    </div>
-                    <h3 className="text-2xl font-extrabold text-white uppercase tracking-tight mb-2 group-hover:text-brand-blue transition-colors">
-                      {project.title}
-                    </h3>
-                    <div className="flex gap-2">
-                      <span className="text-[9px] font-mono font-bold text-gray-600 uppercase tracking-widest">{project.type}</span>
-                      <span className="text-[9px] font-mono font-bold text-brand-blue uppercase tracking-widest">• Global Exit</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-8 flex-1">
-                    {project.techStack.split(',').map((s: string) => (
-                      <span key={s} className="px-3 py-1 bg-white/5 rounded-lg text-[9px] font-mono uppercase font-bold text-gray-500 border border-white/5">
-                        {s.trim()}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Financial Summary */}
-                  <div className="pt-8 border-t border-white/5 grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[9px] text-gray-600 uppercase font-mono font-bold mb-2 tracking-[1px]">MONTHLY MMR</p>
-                      <div className="text-xl font-mono font-black text-white flex items-center">
-                        <span className="text-brand-blue text-sm mr-1">$</span>
-                        {project.mmr.toLocaleString()}
-                        {project.growth && (
-                          <span className="text-[9px] text-green-400 ml-2 font-mono">+{project.growth}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[9px] text-gray-600 uppercase font-mono font-bold mb-2 tracking-[1px]">VALUATION</p>
-                      <div className="text-xl font-mono font-black text-white">
-                        ${project.price.toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-8 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                     <div className="flex -space-x-2">
-                        <div className="w-6 h-6 rounded-full border-2 border-background bg-gray-800 flex items-center justify-center text-[8px] font-bold overflow-hidden">
-                           <img src={project.user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${project.user?.name}`} alt="avatar" />
+                    <div className="absolute top-6 right-8 flex items-center gap-3">
+                      <button 
+                        onClick={(e) => toggleWatchlist(e, project.id)}
+                        className={`p-2 rounded-full transition-all ${project.isWatchlisted ? 'bg-red-500/20 text-red-500' : 'bg-white/5 text-gray-500 hover:text-white'}`}
+                      >
+                        <Heart size={16} fill={project.isWatchlisted ? "currentColor" : "none"} />
+                      </button>
+                      {project.isVerified && (
+                        <div className="px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-full text-[8px] font-mono font-black uppercase tracking-[2px] flex items-center gap-1 border border-brand-blue/20">
+                          <ShieldCheck size={10} /> VERIFIED
                         </div>
-                        <div className="text-[8px] text-gray-500 ml-4 self-center font-bold font-mono">{project.views} VIEWS</div>
-                     </div>
-                     <div className="flex items-center gap-2 text-brand-blue font-mono font-bold text-[9px] uppercase tracking-[2px]">
-                      ANALYZE <ArrowUpRight size={12} />
+                      )}
                     </div>
-                                      </div>
-                                    </motion.div>
-                                  </Link>
-                                ))}
-                              </AnimatePresence>
-                  
+
+                    <div className="mb-8">
+                      <div className="p-3 w-fit bg-white/5 rounded-2xl group-hover:bg-brand-blue/10 transition-colors border border-white/5 mb-6">
+                        <Tag className="text-brand-blue" size={20} />
+                      </div>
+                      <h3 className="text-2xl font-extrabold text-white uppercase tracking-tight mb-2 group-hover:text-brand-blue transition-colors">
+                        {project.title}
+                      </h3>
+                      <div className="flex gap-2">
+                        <span className="text-[9px] font-mono font-bold text-gray-600 uppercase tracking-widest">{project.type}</span>
+                        <span className="text-[9px] font-mono font-bold text-brand-blue uppercase tracking-widest">• Global Exit</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-8 flex-1">
+                      {project.techStack.split(',').map((s: string) => (
+                        <span key={s} className="px-3 py-1 bg-white/5 rounded-lg text-[9px] font-mono uppercase font-bold text-gray-500 border border-white/5">
+                          {s.trim()}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="pt-8 border-t border-white/5 grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[9px] text-gray-600 uppercase font-mono font-bold mb-2 tracking-[1px]">MONTHLY MMR</p>
+                        <div className="text-xl font-mono font-black text-white flex items-center">
+                          <span className="text-brand-blue text-sm mr-1">$</span>
+                          {project.mmr.toLocaleString()}
+                          {project.growth && (
+                            <span className="text-[9px] text-green-400 ml-2 font-mono">+{project.growth}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[9px] text-gray-600 uppercase font-mono font-bold mb-2 tracking-[1px]">VALUATION</p>
+                        <div className="text-xl font-mono font-black text-white">
+                          ${project.price.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                       <div className="flex -space-x-2">
+                          <div className="w-6 h-6 rounded-full border-2 border-background bg-gray-800 flex items-center justify-center text-[8px] font-bold overflow-hidden">
+                             <img src={project.user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${project.user?.name}`} alt="avatar" />
+                          </div>
+                          <div className="text-[8px] text-gray-500 ml-4 self-center font-bold font-mono">{project.views} VIEWS</div>
+                       </div>
+                       <div className="flex items-center gap-2 text-brand-blue font-mono font-bold text-[9px] uppercase tracking-[2px]">
+                        ANALYZE <ArrowUpRight size={12} />
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
+              ))}
+            </AnimatePresence>
           )}
         </div>
       </section>

@@ -32,22 +32,31 @@ export async function GET() {
     // AI Valuation Logic
     const userProjects = await prisma.project.findMany({
       where: { userId, status: "PUBLISHED" },
-      select: { mmr: true, type: true }
+      select: { mmr: true, type: true, techStack: true }
     });
 
     let totalMinValuation = 0;
     let totalMaxValuation = 0;
 
     userProjects.forEach(p => {
-      // Industry multipliers: SaaS (4x-6x annual), Mobile (2x-4x annual), AI/ML (5x-8x)
+      // 1. Base Type Multiplier
       let multiplier = 3.5; 
-      if (p.type === 'SaaS') multiplier = 5;
-      if (p.type === 'AI/ML') multiplier = 7;
-      if (p.type === 'E-Commerce') multiplier = 2.5;
+      if (p.type === 'SaaS') multiplier = 5.5;
+      if (p.type === 'AI/ML') multiplier = 7.5;
+      if (p.type === 'E-Commerce') multiplier = 2.8;
       
+      // 2. Tech Stack Multiplier (Premium stacks get higher valuation)
+      const stack = p.techStack.toLowerCase();
+      let techBonus = 1.0;
+      if (stack.includes('next.js') || stack.includes('react')) techBonus += 0.1;
+      if (stack.includes('openai') || stack.includes('tensorflow')) techBonus += 0.2;
+      if (stack.includes('go') || stack.includes('rust')) techBonus += 0.15;
+
+      const adjustedMultiplier = multiplier * techBonus;
       const annualRevenue = p.mmr * 12;
-      totalMinValuation += annualRevenue * (multiplier * 0.8);
-      totalMaxValuation += annualRevenue * (multiplier * 1.2);
+      
+      totalMinValuation += annualRevenue * (adjustedMultiplier * 0.85);
+      totalMaxValuation += annualRevenue * (adjustedMultiplier * 1.15);
     });
 
     return NextResponse.json({

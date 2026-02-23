@@ -226,9 +226,13 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <button className="w-full py-5 bg-brand-blue text-white font-black rounded-full hover:shadow-[0_0_30px_rgba(0,112,255,0.4)] transition-all uppercase tracking-[3px] text-[10px] active:scale-95">
-                UPDATE ASSET DATA
-              </button>
+                          <button 
+                            onClick={() => window.location.href = `/profile/${user?.id}`}
+                            className="w-full py-5 bg-brand-blue text-white font-black rounded-full hover:shadow-[0_0_30px_rgba(0,112,255,0.4)] transition-all uppercase tracking-[3px] text-[10px] active:scale-95"
+                          >
+                            UPDATE ASSET DATA
+                          </button>
+              
             </div>
           ) : (
             /* Investor Watchlist Showcase */

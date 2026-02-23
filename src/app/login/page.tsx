@@ -29,11 +29,13 @@ export default function LoginPage() {
         <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none"><ShieldCheck size={160} /></div>
 
         <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6 group">
-            <div className="bg-brand-blue p-1.5 rounded-lg shadow-[0_0_15px_rgba(0,112,255,0.4)]">
-              <Zap className="text-white w-5 h-5 fill-current" />
-            </div>
-            <span className="text-xl font-black italic tracking-tighter text-white uppercase tracking-[2px]">DEVEXIT</span>
+          <Link href="/" className="inline-flex flex-col items-center gap-6 mb-6 group">
+            <img 
+              src="/logo.png" 
+              alt="DevExit Logo" 
+              className="w-[111px] h-[111px] object-contain transition-transform group-hover:scale-105" 
+              style={{ filter: 'drop-shadow(0 2px 2px rgba(51, 51, 51, 0.3))' }}
+            />
           </Link>
           <h2 className="text-3xl font-extrabold text-white tracking-tighter mb-2">Welcome Back.</h2>
           <p className="text-gray-500 font-bold text-sm">Secure access to your asset portfolio.</p>

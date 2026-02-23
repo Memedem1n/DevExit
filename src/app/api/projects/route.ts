@@ -5,6 +5,8 @@ import { authOptions } from "@/lib/auth";
 
 import { ProjectSchema } from "@/lib/validations/project";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
@@ -21,7 +23,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: validation.error.format() }, { status: 400 });
     }
 
-    const { title, description, type, mmr, price, techStack, storeUrl, screenshots } = validation.data;
+    const { title, description, type, mmr, price, techStack, storeUrl, screenshots, revenueModel, churnRate, ltv, appSize, ageRating, languages, lastUpdate, rating, reviewCount } = validation.data;
 
     const slug = title.toLowerCase().replace(/ /g, "-") + "-" + Math.random().toString(36).substring(2, 7);
 
@@ -36,6 +38,15 @@ export async function POST(req: Request) {
         techStack,
         storeUrl,
         screenshots,
+        revenueModel,
+        churnRate,
+        ltv,
+        appSize,
+        ageRating,
+        languages,
+        lastUpdate: lastUpdate ? new Date(lastUpdate) : undefined,
+        rating,
+        reviewCount,
         // @ts-ignore
         userId: session.user.id,
         status: "PUBLISHED",
@@ -51,14 +62,17 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type");
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
-    const sort = searchParams.get("sort"); // newest, priceHigh, mmrHigh
+    const sort = searchParams.get("sort");
 
     let where: any = { status: "PUBLISHED" };
     if (type && type !== "All") where.type = type;
+    
+    // Price filtering
     if (minPrice || maxPrice) {
       where.price = {};
       if (minPrice) where.price.gte = parseFloat(minPrice);
@@ -73,12 +87,11 @@ export async function GET(req: Request) {
       where,
       orderBy,
       include: { 
-        user: { select: { name: true, avatar: true } },
+        user: { select: { id: true, name: true, avatar: true } },
         watchlistedBy: true
       }
     });
 
-    // Oturum açmış kullanıcı için isWatchlisted bayrağını ekle
     const projectsWithWatchlist = projects.map(p => {
       const isWatchlisted = session?.user 
         // @ts-ignore
@@ -89,8 +102,11 @@ export async function GET(req: Request) {
       return { ...rest, isWatchlisted };
     });
 
-    return NextResponse.json(projectsWithWatchlist);
+    return new Response(JSON.stringify(projectsWithWatchlist), {
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    });
   } catch (error) {
+    console.error("GET projects error:", error);
     return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
   }
 }
