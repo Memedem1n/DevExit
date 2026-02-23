@@ -23,12 +23,11 @@ export default function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchConversations = async () => {
+    const fetchConversations = async (isSilent = false) => {
       try {
         const res = await fetch("/api/messages");
         const data = await res.json();
         if (res.ok) {
-          // Mesajları gönderici/alıcıya göre grupla
           const groups: any = {};
           data.forEach((msg: any) => {
             const partner = msg.senderId === user?.id ? msg.receiver : msg.sender;
@@ -44,22 +43,37 @@ export default function ChatPage() {
           });
           const list = Object.values(groups);
           setConversations(list);
-          if (list.length > 0 && !activeChat) setActiveChat(list[0]);
+          
+          // Eğer bir chat açıksa, onun mesajlarını güncelle
+          if (activeChat) {
+            const updatedActive = list.find((c: any) => c.partner.id === activeChat.partner.id);
+            if (updatedActive && updatedActive.messages.length !== activeChat.messages.length) {
+              setActiveChat(updatedActive);
+            }
+          } else if (list.length > 0 && !isSilent) {
+            setActiveChat(list[0]);
+          }
         }
       } catch (err) {
         console.error(err);
       } finally {
-        setIsLoading(false);
+        if (!isSilent) setIsLoading(false);
       }
     };
-    if (user) fetchConversations();
-  }, [user]);
+
+    if (user) {
+      fetchConversations();
+      // Polling: Her 3 saniyede bir yeni mesaj var mı bak
+      const interval = setInterval(() => fetchConversations(true), 3000);
+      return () => clearInterval(interval);
+    }
+  }, [user, activeChat?.partner.id, activeChat?.messages.length]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [activeChat, messages]);
+  }, [activeChat?.messages]);
 
   const sendMessage = async () => {
     if (!input || !activeChat) return;
