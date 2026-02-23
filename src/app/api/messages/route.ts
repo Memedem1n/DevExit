@@ -27,8 +27,20 @@ export async function POST(req: Request) {
         projectId,
         // @ts-ignore
         senderId: session.user.id
+      },
+      include: { sender: { select: { name: true } } }
+    });
+
+    // Alıcıya bildirim oluştur
+    await prisma.notification.create({
+      data: {
+        userId: receiverId,
+        type: "MESSAGE",
+        message: `${message.sender.name} size yeni bir mesaj gönderdi.`,
+        link: "/chat"
       }
     });
+
     return NextResponse.json(message);
   } catch (error) {
     return NextResponse.json({ error: "Failed to send message" }, { status: 500 });

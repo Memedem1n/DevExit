@@ -36,7 +36,18 @@ export async function PATCH(
 
     const updatedOffer = await prisma.offer.update({
       where: { id },
-      data: { status }
+      data: { status },
+      include: { project: true }
+    });
+
+    // Teklifi verene (alıcıya) bildirim oluştur
+    await prisma.notification.create({
+      data: {
+        userId: updatedOffer.buyerId,
+        type: "STATUS_CHANGE",
+        message: `'${updatedOffer.project.title}' için yaptığınız teklif ${status === 'ACCEPTED' ? 'KABUL EDİLDİ' : 'REDDEDİLDİ'}.`,
+        link: "/explore"
+      }
     });
 
     return NextResponse.json(updatedOffer);

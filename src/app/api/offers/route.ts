@@ -32,6 +32,17 @@ export async function POST(req: Request) {
         buyerId: session.user.id,
         status: "PENDING",
       },
+      include: { project: true, buyer: { select: { name: true } } }
+    });
+
+    // Proje sahibine bildirim oluştur
+    await prisma.notification.create({
+      data: {
+        userId: offer.project.userId,
+        type: "OFFER",
+        message: `${offer.buyer.name}, '${offer.project.title}' projeniz için $${offer.amount.toLocaleString()} teklif verdi.`,
+        link: "/dashboard"
+      }
     });
 
     return NextResponse.json(offer);

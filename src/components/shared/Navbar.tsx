@@ -16,7 +16,10 @@ export default function Navbar() {
   const { user, isLoggedIn, logout, switchRole } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -24,15 +27,41 @@ export default function Navbar() {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setIsNotifOpen(false);
+      }
+    };
+
+    const fetchNotifs = async () => {
+      try {
+        const res = await fetch("/api/notifications");
+        const data = await res.json();
+        if (res.ok) setNotifications(data);
+      } catch (err) {}
     };
 
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("mousedown", handleClickOutside);
+    if (isLoggedIn) fetchNotifs();
+    
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [isLoggedIn]);
+
+  const markAsRead = async (id: string) => {
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        body: JSON.stringify({ id }),
+        headers: { "Content-Type": "application/json" }
+      });
+      setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (err) {}
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const getTabs = () => {
     const common = [
@@ -101,7 +130,60 @@ export default function Navbar() {
                 <Link href="/register" className="bg-white text-black px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[2px] hover:bg-brand-blue hover:text-white hover:scale-105 transition-all shadow-xl active:scale-95 border border-white/10">Sign Up</Link>
               </motion.div>
             ) : (
-              <div className="relative" ref={menuRef}>
+              <div className="flex items-center gap-4">
+                {/* NOTIFICATIONS */}
+                <div className="relative" ref={notifRef}>
+                  <button 
+                    onClick={() => setIsNotifOpen(!isNotifOpen)}
+                    className="p-3 bg-white/5 border border-white/5 rounded-full hover:border-brand-blue/30 transition-all relative group"
+                  >
+                    <Bell size={18} className={unreadCount > 0 ? "text-brand-blue" : "text-gray-500 group-hover:text-white"} />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background animate-pulse" />
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {isNotifOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-4 w-80 backdrop-blur-3xl bg-black/80 border border-white/10 rounded-[32px] p-2 shadow-2xl z-[110] overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-white/5 flex justify-between items-center">
+                          <h4 className="text-[10px] font-mono font-black text-white uppercase tracking-[2px]">Notifications</h4>
+                          {unreadCount > 0 && (
+                            <button onClick={() => markAsRead('all')} className="text-[8px] font-mono font-bold text-brand-blue uppercase tracking-widest hover:text-white">Mark all read</button>
+                          )}
+                        </div>
+                        <div className="max-h-96 overflow-y-auto custom-scrollbar">
+                          {notifications.length > 0 ? (
+                            notifications.map((n) => (
+                              <div 
+                                key={n.id} 
+                                onClick={() => markAsRead(n.id)}
+                                className={`p-4 rounded-2xl hover:bg-white/5 transition-all cursor-pointer border-b border-white/[0.02] last:border-0 ${!n.isRead ? 'bg-brand-blue/[0.03]' : ''}`}
+                              >
+                                <div className="flex gap-3">
+                                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.isRead ? 'bg-brand-blue' : 'bg-transparent'}`} />
+                                  <div>
+                                    <p className={`text-[11px] leading-snug ${!n.isRead ? 'text-white font-bold' : 'text-gray-500'}`}>{n.message}</p>
+                                    <span className="text-[8px] font-mono text-gray-600 mt-1 block">{new Date(n.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="py-10 text-center text-gray-600 text-[10px] font-mono uppercase tracking-widest">No notifications</div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="relative" ref={menuRef}>
                 <button 
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex items-center gap-3 p-1 pr-3 rounded-full bg-white/5 border border-white/5 hover:border-brand-blue/30 transition-all group relative overflow-hidden"
