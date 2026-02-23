@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/db/prisma";
 import { authOptions } from "@/lib/auth";
+import { MessageSchema } from "@/lib/validations/project";
 
 // Yeni mesaj gönderme
 export async function POST(req: Request) {
@@ -9,7 +10,16 @@ export async function POST(req: Request) {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { content, receiverId, projectId } = await req.json();
+    const body = await req.json();
+    
+    // Zod Validation
+    const validation = MessageSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.format() }, { status: 400 });
+    }
+
+    const { content, receiverId, projectId } = validation.data;
+
     const message = await prisma.message.create({
       data: {
         content,

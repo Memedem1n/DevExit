@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/db/prisma";
 import { authOptions } from "@/lib/auth";
+import { OfferSchema } from "@/lib/validations/project";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -12,12 +13,19 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { projectId, amount, message } = body;
+    
+    // Zod Validation
+    const validation = OfferSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.format() }, { status: 400 });
+    }
+
+    const { projectId, amount, message } = validation.data;
 
     // Teklifi kaydet
     const offer = await prisma.offer.create({
       data: {
-        amount: parseFloat(amount),
+        amount,
         message,
         projectId,
         // @ts-ignore

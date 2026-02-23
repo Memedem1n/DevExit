@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/db/prisma";
 import { authOptions } from "@/lib/auth";
 
+import { ProjectSchema } from "@/lib/validations/project";
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
@@ -12,7 +14,14 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { title, description, type, mmr, price, techStack, storeUrl } = body;
+    
+    // Zod Validation
+    const validation = ProjectSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.format() }, { status: 400 });
+    }
+
+    const { title, description, type, mmr, price, techStack, storeUrl } = validation.data;
 
     const slug = title.toLowerCase().replace(/ /g, "-") + "-" + Math.random().toString(36).substring(2, 7);
 
@@ -22,9 +31,9 @@ export async function POST(req: Request) {
         description,
         slug,
         type,
-        mmr: parseFloat(mmr),
-        price: parseFloat(price),
-        techStack: Array.isArray(techStack) ? techStack.join(",") : techStack,
+        mmr,
+        price,
+        techStack,
         storeUrl,
         // @ts-ignore
         userId: session.user.id,
