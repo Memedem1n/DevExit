@@ -6,7 +6,8 @@ import DynamicBackground from "@/components/ui/DynamicBackground";
 import { motion } from "framer-motion";
 import { 
   BarChart3, Eye, MousePointerClick, MessageSquare, 
-  TrendingUp, Users, ArrowUpRight, Lock, Bell
+  TrendingUp, Users, ArrowUpRight, Lock, Bell,
+  Heart, Send, DollarSign
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -21,21 +22,34 @@ export default function DashboardPage() {
     valuation: { min: 0, max: 0 }
   });
   const [activities, setActivities] = useState<any[]>([]);
+  const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [sentOffers, setSentOffers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, activityRes] = await Promise.all([
+        const promises = [
           fetch("/api/user/stats"),
           fetch("/api/user/activity")
-        ]);
+        ];
+
+        if (user?.currentRole === 'INVESTOR') {
+          promises.push(fetch("/api/watchlist"));
+          // Verdiğim teklifler için bir API ekleyeceğiz veya mevcut teklifleri filtreleyeceğiz
+        }
+
+        const responses = await Promise.all(promises);
+        const statsData = await responses[0].json();
+        const activityData = await responses[1].json();
         
-        const statsData = await statsRes.json();
-        const activityData = await activityRes.json();
-        
-        if (statsRes.ok) setStats(statsData);
-        if (activityRes.ok) setActivities(activityData);
+        if (responses[0].ok) setStats(statsData);
+        if (responses[1].ok) setActivities(activityData);
+
+        if (user?.currentRole === 'INVESTOR' && responses[2]) {
+          const watchlistData = await responses[2].json();
+          setWatchlist(watchlistData);
+        }
       } catch (err) {
         console.error("Failed to fetch dashboard data", err);
       } finally {
@@ -44,7 +58,7 @@ export default function DashboardPage() {
     };
 
     if (user) fetchData();
-  }, [user]);
+  }, [user, user?.currentRole]);
 
   const getTimeAgo = (date: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
@@ -83,27 +97,38 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <div>
              <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-lg text-[9px] font-mono font-bold uppercase tracking-[2px] mb-4 border border-brand-blue/20">
-               {user?.currentRole} CONSOLE
+               {user?.currentRole} {user?.currentRole === 'DEVELOPER' ? 'CONSOLE' : 'PORTFOLIO'}
              </div>
              <h1 className="text-5xl md:text-6xl font-extrabold tracking-tighter text-white">
-               PERFORMANCE <span className="text-gradient italic">HUB</span>
+               {user?.currentRole === 'DEVELOPER' ? 'PERFORMANCE' : 'ACQUISITION'} <span className="text-gradient italic">HUB</span>
              </h1>
           </div>
           <div className="flex gap-4">
-            <Link href="/dashboard/add" className="px-8 py-4 bg-brand-blue text-white font-bold rounded-full hover:shadow-[0_0_40px_rgba(0,112,255,0.4)] transition-all uppercase tracking-widest text-[11px] flex items-center gap-2">
-              NEW LISTING <ArrowUpRight size={14} />
-            </Link>
+            {user?.currentRole === 'DEVELOPER' ? (
+              <Link href="/dashboard/add" className="px-8 py-4 bg-brand-blue text-white font-bold rounded-full hover:shadow-[0_0_40px_rgba(0,112,255,0.4)] transition-all uppercase tracking-widest text-[11px] flex items-center gap-2">
+                NEW LISTING <ArrowUpRight size={14} />
+              </Link>
+            ) : (
+              <Link href="/explore" className="px-8 py-4 bg-white text-black font-bold rounded-full hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] transition-all uppercase tracking-widest text-[11px] flex items-center gap-2">
+                EXPLORE ASSETS <ArrowUpRight size={14} />
+              </Link>
+            )}
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
-          {[
+          {(user?.currentRole === 'DEVELOPER' ? [
             { label: "TOTAL VIEWS", val: stats.totalViews.toLocaleString(), icon: <Eye size={18} />, change: "Real-time", color: "text-brand-blue" },
             { label: "INTERESTED BUYERS", val: stats.offerCount, icon: <Users size={18} />, change: "Offers", color: "text-brand-cyan" },
             { label: "ACTIVE LISTINGS", val: stats.projectCount, icon: <MessageSquare size={18} />, change: "In Market", color: "text-green-500" },
             { label: "LISTING QUALITY", val: stats.qualityScore > 0 ? `${stats.qualityScore}/100` : "N/A", icon: <TrendingUp size={18} />, change: "Analysis", color: "text-purple-500" },
-          ].map((stat, i) => (
+          ] : [
+            { label: "WATCHLIST", val: watchlist.length, icon: <Heart size={18} />, change: "Tracked", color: "text-red-500" },
+            { label: "OFFERS SENT", val: "0", icon: <Send size={18} />, change: "Active", color: "text-brand-blue" },
+            { label: "INVESTED CAPITAL", val: "$0", icon: <DollarSign size={18} />, change: "Exits", color: "text-green-500" },
+            { label: "DEAL FLOW", val: "High", icon: <TrendingUp size={18} />, change: "Market", color: "text-purple-500" },
+          ]).map((stat, i) => (
             <motion.div 
               key={i}
               initial={{ opacity: 0, y: 20 }}
@@ -132,7 +157,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Activity / Notifications */}
-          <div className="glass p-10 rounded-[40px] border-white/5 lg:col-span-2">
+          <div className={`glass p-10 rounded-[40px] border-white/5 ${user?.currentRole === 'DEVELOPER' ? 'lg:col-span-2' : 'lg:col-span-1'}`}>
             <h3 className="text-xl font-extrabold text-white mb-8 flex items-center gap-3">
               <Bell size={20} className="text-brand-blue" /> RECENT ACTIVITY
             </h3>
@@ -151,7 +176,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Action Buttons for Offers */}
-                    {notif.type === 'OFFER' && notif.status === 'PENDING' && (
+                    {notif.type === 'OFFER' && notif.status === 'PENDING' && user?.currentRole === 'DEVELOPER' && (
                       <div className="flex gap-3 mt-2">
                         <button 
                           onClick={() => handleUpdateOffer(notif.id, 'ACCEPTED')}
@@ -175,35 +200,73 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* AI Valuation Insight */}
-          <div className="glass p-10 rounded-[40px] border-brand-blue/20 relative overflow-hidden bg-brand-blue/[0.02]">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/20 blur-[80px] rounded-full" />
-            
-            <div className="mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-lg text-[9px] font-mono font-bold uppercase tracking-[2px] mb-4 border border-brand-blue/20">
-                AI INSIGHT
+          {user?.currentRole === 'DEVELOPER' ? (
+            /* AI Valuation Insight (Developer Only) */
+            <div className="glass p-10 rounded-[40px] border-brand-blue/20 relative overflow-hidden bg-brand-blue/[0.02]">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/20 blur-[80px] rounded-full" />
+              
+              <div className="mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-lg text-[9px] font-mono font-bold uppercase tracking-[2px] mb-4 border border-brand-blue/20">
+                  AI INSIGHT
+                </div>
+                <h3 className="text-3xl font-extrabold text-white mb-2">VALUATION UPDATE</h3>
+                <p className="text-gray-500 text-sm font-medium">Based on recent market trends & your verified MMR growth.</p>
               </div>
-              <h3 className="text-3xl font-extrabold text-white mb-2">VALUATION UPDATE</h3>
-              <p className="text-gray-500 text-sm font-medium">Based on recent market trends & your verified MMR growth.</p>
-            </div>
 
-            <div className="text-center py-8 border-t border-b border-white/5 mb-8">
-              <p className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-[2px] mb-2">ESTIMATED EXIT RANGE</p>
-              <div className="text-5xl font-mono font-black text-white tracking-tighter">
-                {stats.valuation?.min > 0 ? (
-                  <>
-                    ${Math.round(stats.valuation.min / 1000)}K <span className="text-gray-600 text-3xl mx-2">-</span> ${Math.round(stats.valuation.max / 1000)}K
-                  </>
-                ) : (
-                  "$0K"
-                )}
+              <div className="text-center py-8 border-t border-b border-white/5 mb-8">
+                <p className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-[2px] mb-2">ESTIMATED EXIT RANGE</p>
+                <div className="text-5xl font-mono font-black text-white tracking-tighter">
+                  {stats.valuation?.min > 0 ? (
+                    <>
+                      ${Math.round(stats.valuation.min / 1000)}K <span className="text-gray-600 text-3xl mx-2">-</span> ${Math.round(stats.valuation.max / 1000)}K
+                    </>
+                  ) : (
+                    "$0K"
+                  )}
+                </div>
               </div>
-            </div>
 
-            <button className="w-full py-5 bg-brand-blue text-white font-black rounded-full hover:shadow-[0_0_30px_rgba(0,112,255,0.4)] transition-all uppercase tracking-[3px] text-[10px] active:scale-95">
-              UPDATE ASSET DATA
-            </button>
-          </div>
+              <button className="w-full py-5 bg-brand-blue text-white font-black rounded-full hover:shadow-[0_0_30px_rgba(0,112,255,0.4)] transition-all uppercase tracking-[3px] text-[10px] active:scale-95">
+                UPDATE ASSET DATA
+              </button>
+            </div>
+          ) : (
+            /* Investor Watchlist Showcase */
+            <div className="lg:col-span-2 space-y-8">
+               <h3 className="text-xl font-extrabold text-white flex items-center gap-3">
+                 <Heart size={20} className="text-red-500" /> PORTFOLIO WATCHLIST
+               </h3>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 {watchlist.length > 0 ? (
+                   watchlist.map((project) => (
+                     <Link key={project.id} href={`/project/${project.slug}`}>
+                        <div className="glass p-8 rounded-[40px] border-white/5 hover:border-brand-blue/30 transition-all group">
+                           <div className="flex justify-between items-start mb-6">
+                              <div className="p-3 bg-white/5 rounded-2xl group-hover:bg-brand-blue/10 transition-colors">
+                                <Zap className="text-brand-blue" size={20} />
+                              </div>
+                              <span className="px-3 py-1 bg-white/5 rounded-full text-[9px] font-mono font-bold text-gray-500 uppercase tracking-widest">{project.type}</span>
+                           </div>
+                           <h4 className="text-xl font-extrabold text-white mb-2 group-hover:text-brand-blue transition-colors uppercase truncate">{project.title}</h4>
+                           <div className="flex justify-between items-center mt-6 pt-6 border-t border-white/5">
+                              <div>
+                                <p className="text-[8px] font-mono font-black text-gray-600 uppercase mb-1">EXIT PRICE</p>
+                                <p className="text-lg font-mono font-black text-white">${project.price.toLocaleString()}</p>
+                              </div>
+                              <ArrowUpRight size={18} className="text-gray-700 group-hover:text-brand-blue transition-all" />
+                           </div>
+                        </div>
+                     </Link>
+                   ))
+                 ) : (
+                   <div className="col-span-full py-20 text-center glass rounded-[40px] border-white/5">
+                      <p className="text-gray-500 font-mono text-[10px] uppercase tracking-[4px]">Your watchlist is empty.</p>
+                      <Link href="/explore" className="text-brand-blue font-bold text-[10px] uppercase tracking-[2px] mt-4 block hover:text-white transition-colors">Explore Assets</Link>
+                   </div>
+                 )}
+               </div>
+            </div>
+          )}
         </div>
       </section>
 
