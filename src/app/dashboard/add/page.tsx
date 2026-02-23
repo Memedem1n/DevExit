@@ -14,6 +14,7 @@ import Link from "next/link";
 export default function AddProjectPage() {
   const [step, setStep] = useState(1);
   const [storeUrl, setStoreUrl] = useState("");
+  const [screenshotUrl, setScreenshotUrl] = useState("");
   const [isFetching, setIsFetching] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   
@@ -54,7 +55,8 @@ export default function AddProjectPage() {
           mmr: isVerified ? 4250 : 0,
           price: 125000, // Simulated price
           techStack: "Swift, Python, TensorFlow",
-          storeUrl: storeUrl
+          storeUrl: storeUrl,
+          screenshots: screenshotUrl
         }),
         headers: { "Content-Type": "application/json" }
       });
@@ -166,6 +168,15 @@ export default function AddProjectPage() {
                       <textarea 
                         defaultValue={projectData.description}
                         className="w-full bg-white/5 border border-white/5 rounded-[32px] py-6 px-8 text-sm text-gray-400 focus:outline-none focus:border-brand-blue/40 transition-all font-medium h-40"
+                      />
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-mono font-black text-gray-500 uppercase tracking-[2px] ml-2">Ekran Görüntüsü URL (Opsiyonel)</label>
+                      <input 
+                        type="text"
+                        value={screenshotUrl}
+                        onChange={(e) => setScreenshotUrl(e.target.value)}
+                        placeholder="https://imgur.com/your-screenshot.png"
+                        className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:outline-none focus:border-brand-blue/40 transition-all"
                       />
                     </div>
                   </div>

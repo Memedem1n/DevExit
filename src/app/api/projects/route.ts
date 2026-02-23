@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: validation.error.format() }, { status: 400 });
     }
 
-    const { title, description, type, mmr, price, techStack, storeUrl } = validation.data;
+    const { title, description, type, mmr, price, techStack, storeUrl, screenshots } = validation.data;
 
     const slug = title.toLowerCase().replace(/ /g, "-") + "-" + Math.random().toString(36).substring(2, 7);
 
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
         price,
         techStack,
         storeUrl,
+        screenshots,
         // @ts-ignore
         userId: session.user.id,
         status: "PUBLISHED",

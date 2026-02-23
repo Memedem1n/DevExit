@@ -8,6 +8,7 @@ export const ProjectSchema = z.object({
   price: z.number().min(100, "Price must be at least $100"),
   techStack: z.string().min(2, "Tech stack is required"),
   storeUrl: z.string().url().optional().or(z.literal("")),
+  screenshots: z.string().optional().or(z.literal("")),
 });
 
 export const OfferSchema = z.object({

@@ -9,7 +9,7 @@ import {
   ArrowLeft, Tag, DollarSign, TrendingUp, Globe, 
   ShieldCheck, Zap, Download, Star, Cpu, 
   ArrowUpRight, MessageSquare, Send, Calculator,
-  ExternalLink, Calendar
+  ExternalLink, Calendar, Image as ImageIcon
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -146,6 +146,26 @@ export default function ProjectDetailPage() {
                  </div>
                ))}
             </div>
+
+            {/* Screenshots Showcase */}
+            {project.screenshots && (
+              <div className="space-y-8">
+                <h4 className="text-[11px] font-mono font-black text-brand-blue uppercase tracking-[4px] flex items-center gap-3">
+                  <ImageIcon size={14} /> ASSET SHOWCASE
+                </h4>
+                <div className="grid grid-cols-1 gap-6">
+                  {project.screenshots.split(',').map((url: string, i: number) => (
+                    <motion.div 
+                      key={i}
+                      whileHover={{ scale: 1.02 }}
+                      className="glass rounded-[40px] border-white/5 overflow-hidden shadow-2xl"
+                    >
+                      <img src={url.trim()} alt={`Screenshot ${i + 1}`} className="w-full object-cover" />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Description & Tech Stack */}
             <div className="glass p-12 rounded-[60px] border-white/5 space-y-12">

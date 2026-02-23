@@ -103,6 +103,7 @@ model Project {
   // External Data
   storeUrl        String?
   revenueCatId    String?
+  screenshots     String?  // Comma separated URLs
   
   // Relations
   userId          String
