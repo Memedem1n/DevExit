@@ -14,14 +14,24 @@ import { useEffect, useState } from "react";
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+  const [sortOption, setSortOption] = useState("newest");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [projects, setProjects] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/projects");
+        const params = new URLSearchParams();
+        if (activeFilter !== "All") params.append("type", activeFilter);
+        if (minPrice) params.append("minPrice", minPrice);
+        if (maxPrice) params.append("maxPrice", maxPrice);
+        params.append("sort", sortOption);
+
+        const res = await fetch(`/api/projects?${params.toString()}`);
         const data = await res.json();
         if (res.ok) setProjects(data);
       } catch (err) {
@@ -31,13 +41,11 @@ export default function ExplorePage() {
       }
     };
     fetchProjects();
-  }, []);
+  }, [activeFilter, sortOption, minPrice, maxPrice]);
 
   const filteredProjects = projects.filter(p => {
     const searchStr = (p.title + p.type + p.techStack).toLowerCase();
-    const matchesSearch = searchStr.includes(searchQuery.toLowerCase());
-    const matchesFilter = activeFilter === "All" || p.type === activeFilter;
-    return matchesSearch && matchesFilter;
+    return searchStr.includes(searchQuery.toLowerCase());
   });
 
   return (
@@ -70,11 +78,69 @@ export default function ExplorePage() {
               />
             </div>
             
-            <button className="px-6 py-4 glass rounded-2xl flex items-center justify-center gap-3 text-white font-bold text-sm hover:bg-white/10 transition-all">
+            <div className="relative">
+              <select 
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="appearance-none px-8 py-4 glass rounded-2xl flex items-center justify-center gap-3 text-white font-bold text-sm hover:bg-white/10 transition-all outline-none pr-12"
+              >
+                <option value="newest">NEWEST FIRST</option>
+                <option value="priceHigh">HIGHEST PRICE</option>
+                <option value="mmrHigh">HIGHEST MMR</option>
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
+            </div>
+            
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className={`px-6 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold text-sm transition-all ${showFilters ? 'bg-brand-blue text-white' : 'glass text-white hover:bg-white/10'}`}
+            >
               <SlidersHorizontal size={18} /> Filters
             </button>
           </div>
         </div>
+
+        {/* Advanced Filters Drawer */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden mb-12"
+            >
+              <div className="glass p-8 rounded-[40px] border-brand-blue/20 grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div className="space-y-4">
+                    <p className="text-[10px] font-mono font-black text-gray-500 uppercase tracking-[2px]">Price Range (USD)</p>
+                    <div className="flex gap-4">
+                       <input 
+                        type="number" 
+                        placeholder="Min Price" 
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
+                        className="flex-1 bg-white/5 border border-white/5 rounded-2xl py-3 px-4 text-xs text-white focus:outline-none focus:border-brand-blue/40"
+                       />
+                       <input 
+                        type="number" 
+                        placeholder="Max Price" 
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(e.target.value)}
+                        className="flex-1 bg-white/5 border border-white/5 rounded-2xl py-3 px-4 text-xs text-white focus:outline-none focus:border-brand-blue/40"
+                       />
+                    </div>
+                 </div>
+                 <div className="flex items-end gap-4">
+                    <button 
+                      onClick={() => { setMinPrice(""); setMaxPrice(""); setActiveFilter("All"); }}
+                      className="flex-1 py-3 border border-white/5 rounded-2xl text-[10px] font-mono font-black text-gray-500 hover:text-white uppercase tracking-[2px]"
+                    >
+                      Reset All
+                    </button>
+                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Quick Filter Tabs */}
         <div className="flex gap-3 overflow-x-auto no-scrollbar pb-8 mb-12">

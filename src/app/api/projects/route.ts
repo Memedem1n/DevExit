@@ -39,11 +39,29 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const type = searchParams.get("type");
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
+    const sort = searchParams.get("sort"); // newest, priceHigh, mmrHigh
+
+    let where: any = { status: "PUBLISHED" };
+    if (type && type !== "All") where.type = type;
+    if (minPrice || maxPrice) {
+      where.price = {};
+      if (minPrice) where.price.gte = parseFloat(minPrice);
+      if (maxPrice) where.price.lte = parseFloat(maxPrice);
+    }
+
+    let orderBy: any = { createdAt: "desc" };
+    if (sort === "priceHigh") orderBy = { price: "desc" };
+    if (sort === "mmrHigh") orderBy = { mmr: "desc" };
+
     const projects = await prisma.project.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { createdAt: "desc" },
+      where,
+      orderBy,
       include: { user: { select: { name: true, avatar: true } } }
     });
     return NextResponse.json(projects);
